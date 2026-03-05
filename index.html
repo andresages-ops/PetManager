@@ -119,7 +119,7 @@
         .measure-unit { font-size: 0.6rem; color: var(--text-muted); }
         .measure-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; margin-top: 5px; font-weight: 600;}
 
-        /* HISTORIAL */
+        /* HISTORIAL MODIFICADO */
         .history-container { padding: 0 20px; margin-top: 10px; }
         .date-separator { color: var(--accent-cyan); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; margin: 15px 0 8px 0; letter-spacing: 0.5px; opacity: 0.9; }
         .date-separator:first-child { margin-top: 0; }
@@ -551,20 +551,20 @@
         const db = getFirestore(app);
 
         let pets = [];
-        window.currentPetId = null; // Se expone al window para que el HTML lo lea
+        window.currentPetId = null; 
         let editingRecordId = null;
         let weightChartInstance = null;
 
         // --- MIGRACIÓN DE LOCAL A LA NUBE ---
         async function migrateLocalDataToCloud() {
             const localData = JSON.parse(localStorage.getItem('myPetsData'));
-            const isMigrated = localStorage.getItem('cloudMigrated_v2'); // Nueva bandera
+            const isMigrated = localStorage.getItem('cloudMigrated_v2'); 
             
             if (localData && localData.length > 0 && !isMigrated) {
                 console.log("Subiendo historial guardado a la nube...");
                 for (let pet of localData) {
                     try {
-                        pet.species = "Perro"; // Fuerza a todos a ser perros en la DB
+                        pet.species = "Perro"; 
                         await setDoc(doc(db, "pets", pet.id.toString()), pet);
                     } catch(e) {
                         console.error("Error migrando mascota", e);
@@ -584,7 +584,6 @@
 
             renderPetList();
             
-            // Lógica de Memoria Automática: si no hay perro seleccionado, elige el último
             if (window.currentPetId === null && pets.length > 0) {
                 let savedId = localStorage.getItem('lastSelectedPetId');
                 if (savedId && pets.some(p => p.id.toString() === savedId.toString())) {
@@ -615,8 +614,6 @@
 
         // --- FUNCIONES GLOBALES EXPUESTAS AL HTML ---
         window.switchView = function(viewId, navId, addToHistory = true) {
-            
-            // Auto-selección en caso de estar nulo
             if (window.currentPetId === null && pets.length > 0) {
                 let savedId = localStorage.getItem('lastSelectedPetId');
                 if (savedId && pets.some(p => p.id.toString() === savedId.toString())) {
@@ -671,7 +668,7 @@
             }
         });
 
-        // --- SISTEMA DE ALERTAS (SOLO PERROS) ---
+        // --- SISTEMA DE ALERTAS ---
         function renderAlerts() {
             const container = document.getElementById('dashboardAlertsContainer');
             container.innerHTML = '';
@@ -730,6 +727,18 @@
             setTimeout(() => { window.switchView('view-vet', 'nav-vet'); window.openModal('addMedRecordModal'); }, 100); 
         };
 
+        function calculateAge(birthDateString) {
+            if (!birthDateString) return '--';
+            const birthDate = new Date(birthDateString + 'T00:00:00');
+            const today = new Date();
+            let years = today.getFullYear() - birthDate.getFullYear();
+            let months = today.getMonth() - birthDate.getMonth();
+            if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) { years--; months += 12; }
+            if (years > 0) return `${years} año${years !== 1 ? 's' : ''}`;
+            else if (months > 0) return `${months} mes${months !== 1 ? 'es' : ''}`;
+            else return 'Días';
+        }
+
         function renderPetList() {
             renderAlerts(); 
             const container = document.getElementById('petListContainer');
@@ -771,11 +780,10 @@
 
         window.selectPet = function(id) { 
             window.currentPetId = id; 
-            localStorage.setItem('lastSelectedPetId', id); // Guarda la selección
+            localStorage.setItem('lastSelectedPetId', id); 
             window.switchView('view-profile', 'nav-profile'); 
         }
 
-        // --- COMPRESIÓN DE IMÁGENES ---
         window.handleImageUpload = function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -856,6 +864,7 @@
             }
         }
 
+        // AQUI ESTABA EL ERROR: AHORA ESTÁ EXPUESTO A WINDOW
         window.resetSegmentedControl = function(containerId, activeIndex, activeClass) {
             const container = document.getElementById(containerId);
             if(!container) return;
@@ -1289,7 +1298,7 @@
             }
         }
 
-        // --- EventOS de Formularios (Firebase DB) ---
+        // --- Eventos Formularios Mascotas ---
         document.getElementById('addPetForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const newPet = {
